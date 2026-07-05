@@ -1329,6 +1329,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 } catch (e) {
                     logErrorToPanel("AUDIO", `Pause error: ${e.message}`);
                 }
+                try {
+                    if (bgVideo) bgVideo.pause();
+                } catch (e) {
+                    logErrorToPanel("VIDEO", `Pause error: ${e.message}`);
+                }
                 statusText.innerText = "STANDBY";
                 statusText.style.color = "var(--text-muted)";
                 playDocBtn.innerHTML = "<span class='play-triangle'>▶</span>";
@@ -1346,6 +1351,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 videoArea.classList.add("playing");
                 logInfoToPanel("SYSTEM", "Playback initiated. Starting synchronization loop.");
                 
+                // Play local background video
+                if (bgVideo) {
+                    const playVideoPromise = bgVideo.play();
+                    if (playVideoPromise !== undefined) {
+                        playVideoPromise.catch(error => {
+                            console.error("Video play blocked by browser:", error);
+                            logErrorToPanel("VIDEO_BLOCKED", `Video playback error: ${error.message}`);
+                        });
+                    }
+                }
+
                 if (audioTrack) {
                     const playAudioPromise = audioTrack.play();
                     if (playAudioPromise !== undefined) {
@@ -1365,7 +1381,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (audioTrack) {
             // Reset player UI state when audio track finishes playing
-            audioTrack.addEventListener("ended", triggerDocumentaryFinished);
+            audioTrack.addEventListener("ended", () => {
+                try {
+                    if (bgVideo) {
+                        bgVideo.pause();
+                        bgVideo.currentTime = 0;
+                    }
+                } catch (e) {}
+                triggerDocumentaryFinished();
+            });
         }
     }
 });
