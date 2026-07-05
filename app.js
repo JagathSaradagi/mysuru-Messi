@@ -1012,30 +1012,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Play/Pause interaction
         playDocBtn.addEventListener("click", () => {
-            if (isPlaying) {
-                // Pause narration & animations
-                audioTrack.pause();
-                statusText.innerText = "STANDBY";
-                statusText.style.color = "var(--text-muted)";
-                playDocBtn.innerHTML = "<span class='play-triangle'>▶</span>";
-                videoArea.classList.remove("playing");
-                subtitleOverlay.classList.remove("active");
-                isPlaying = false;
-            } else {
-                // Play / resume
-                isPlaying = true;
-                statusText.innerText = "PLAYING DOCUMENTARY";
-                statusText.style.color = "var(--secondary-color)";
-                playDocBtn.innerHTML = "<span style='font-size:1.8rem; font-weight:bold;'>||</span>";
-                videoArea.classList.add("playing");
-                
-                const playAudioPromise = audioTrack.play();
-                if (playAudioPromise !== undefined) {
-                    playAudioPromise.catch(error => {
-                        console.log("Audio playback blocked by browser security. Retrying...", error);
-                        statusText.innerText = "AUDIO BLOCKED (TAP TO UNMUTE)";
-                    });
+            try {
+                if (isPlaying) {
+                    // Pause narration & animations
+                    audioTrack.pause();
+                    statusText.innerText = "STANDBY";
+                    statusText.style.color = "var(--text-muted)";
+                    playDocBtn.innerHTML = "<span class='play-triangle'>▶</span>";
+                    videoArea.classList.remove("playing");
+                    subtitleOverlay.classList.remove("active");
+                    isPlaying = false;
+                } else {
+                    // Play / resume
+                    isPlaying = true;
+                    statusText.innerText = "PLAYING DOCUMENTARY";
+                    statusText.style.color = "var(--secondary-color)";
+                    playDocBtn.innerHTML = "<span style='font-size:1.8rem; font-weight:bold;'>||</span>";
+                    videoArea.classList.add("playing");
+                    
+                    const playAudioPromise = audioTrack.play();
+                    if (playAudioPromise !== undefined) {
+                        playAudioPromise.catch(error => {
+                            console.error("Audio playback blocked:", error);
+                            statusText.innerText = "AUDIO PLAY ERROR";
+                            alert("Audio play blocked: " + error.message);
+                        });
+                    }
                 }
+            } catch (err) {
+                console.error("Click handler crash:", err);
+                alert("Player encountered error: " + err.message + "\nStack: " + err.stack);
             }
         });
 
