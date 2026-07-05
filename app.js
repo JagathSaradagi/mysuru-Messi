@@ -1322,7 +1322,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         // Play/Pause interaction
-        playDocBtn.addEventListener("click", () => {
+        const togglePlayback = () => {
             if (isPlaying) {
                 // Pause narration & animations
                 try {
@@ -1377,6 +1377,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else {
                     logErrorToPanel("PLAYBACK", "No Audio Track found. Playing visual sequence in standalone video mode.");
                 }
+            }
+        };
+
+        playDocBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            togglePlayback();
+        });
+
+        // Clicking the video container while playing pauses it
+        videoArea.addEventListener("click", () => {
+            if (isPlaying) {
+                togglePlayback();
             }
         });
 
