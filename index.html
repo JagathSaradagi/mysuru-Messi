@@ -279,16 +279,24 @@
         <h2 class="section-title text-center">The <span class="gradient-text">Docu-Series</span></h2>
         <p class="section-subtitle text-center">Experience the narrative journey of the Mysuru Messi. Turn on your sound and play the intro.</p>
         <div class="doc-player-card-centered">
-            <div class="doc-video-area">
-                <!-- Premium Animated Stadium Lighting Backdrop -->
+            <div class="doc-video-container">
+                <!-- High-quality atmospheric football background video looped -->
+                <video id="doc-bg-video" loop muted playsinline>
+                    <source src="https://assets.mixkit.co/videos/preview/mixkit-playing-football-in-a-stadium-at-night-40541-large.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <!-- Spotlights overlay -->
                 <div class="stadium-lights">
                     <div class="light-beam lb-left"></div>
                     <div class="light-beam lb-right"></div>
-                    <span class="field-ball">⚽</span>
                 </div>
+                <!-- Play overlay control button -->
                 <div class="play-overlay" id="play-doc-btn">
                     <span class="play-triangle">▶</span>
                 </div>
+                <!-- Subtitle Overlay centered at bottom of video -->
+                <div id="doc-subtitles" class="subtitle-overlay"></div>
+                <!-- Audio Status Indicator -->
                 <div class="audio-hud">
                     <span class="status-indicator">STANDBY</span>
                 </div>

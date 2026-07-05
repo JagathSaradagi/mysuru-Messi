@@ -242,73 +242,79 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* ==========================================================================
-       Cinematic Documentary Typing Feature with Text-To-Speech Audio
+       Cinematic Documentary Audio and Subtitle Synchronizer
        ========================================================================== */
     const playDocBtn = document.getElementById("play-doc-btn");
     const statusText = document.querySelector(".status-indicator");
-    const videoArea = document.querySelector(".doc-video-area");
+    const videoArea = document.querySelector(".doc-video-container");
+    const bgVideo = document.getElementById("doc-bg-video");
+    const subtitleOverlay = document.getElementById("doc-subtitles");
 
-    const documentaryScript = "In the heart of Mysore, a young boy named K V Aryan Urs first touched a football. Nobody predicted that years later, on the fields of PES University, he would command the pitch under the eyes of coach Jagath Saradigi. Every turn, every diagonal run, and every clinical assist whispers one name across the campus: The Mysuru Messi.";
+    // Audio Object using local narrator track
+    const audioTrack = new Audio("narrator.mp3");
+
+    // Explicit subtitle timestamps mapping to narrator.mp3 timing
+    const subtitleTracks = [
+        { start: 0.0, end: 4.8, text: "In the heart of Mysore, a young boy named K V Aryan Urs first touched a football." },
+        { start: 4.8, end: 11.2, text: "Nobody predicted that years later, on the fields of PES University..." },
+        { start: 11.2, end: 16.5, text: "...he would command the pitch under the eyes of coach Jagath Saradigi." },
+        { start: 16.5, end: 25.0, text: "Every turn, every diagonal run, and every clinical assist whispers one name across the campus: The Mysuru Messi." }
+    ];
 
     let isPlaying = false;
-    let synth = window.speechSynthesis;
-    let utterance = null;
 
-    if (playDocBtn && statusText && videoArea) {
+    if (playDocBtn && statusText && videoArea && bgVideo && subtitleOverlay) {
+        
+        const updateSubtitles = () => {
+            const currentTime = audioTrack.currentTime;
+            let activeSubtitle = subtitleTracks.find(sub => currentTime >= sub.start && currentTime < sub.end);
+            
+            if (activeSubtitle) {
+                subtitleOverlay.innerText = activeSubtitle.text;
+                subtitleOverlay.classList.add("active");
+            } else {
+                subtitleOverlay.classList.remove("active");
+            }
+        };
+
         playDocBtn.addEventListener("click", () => {
             if (isPlaying) {
-                // Pause / Stop documentary and voice
-                if (synth) synth.cancel();
+                // Pause narration, video and animations
+                audioTrack.pause();
+                bgVideo.pause();
                 statusText.innerText = "STANDBY";
                 statusText.style.color = "var(--text-muted)";
                 playDocBtn.innerHTML = "<span class='play-triangle'>▶</span>";
                 videoArea.classList.remove("playing");
+                subtitleOverlay.classList.remove("active");
                 isPlaying = false;
             } else {
-                // Start documentary narration and voice
+                // Start / resume playback
                 isPlaying = true;
-                statusText.innerText = "PLAYING AUDIO NARRATIVE";
+                statusText.innerText = "PLAYING DOCUMENTARY";
                 statusText.style.color = "var(--secondary-color)";
                 playDocBtn.innerHTML = "<span style='font-size:1.8rem; font-weight:bold;'>||</span>";
                 videoArea.classList.add("playing");
                 
-                // Set up browser narrator voice
-                if (synth) {
-                    synth.cancel(); // Reset any ongoing audio
-                    utterance = new SpeechSynthesisUtterance(documentaryScript);
-                    
-                    const voices = synth.getVoices();
-                    const preferredVoice = voices.find(voice => voice.name.includes("Google US English") || voice.name.includes("Natural") || voice.name.includes("Male"));
-                    if (preferredVoice) utterance.voice = preferredVoice;
-                    
-                    utterance.rate = 0.85; // Cinematic narration pace
-                    utterance.pitch = 0.9;  // Deepen pitch slightly
-                    
-                    utterance.onend = () => {
-                        statusText.innerText = "FINISHED";
-                        statusText.style.color = "var(--primary-color)";
-                        playDocBtn.innerHTML = "<span class='play-triangle'>▶</span>";
-                        videoArea.classList.remove("playing");
-                        isPlaying = false;
-                    };
-                    
-                    synth.speak(utterance);
-                } else {
-                    // Fallback for browsers without speech synthesis
-                    setTimeout(() => {
-                        statusText.innerText = "FINISHED";
-                        statusText.style.color = "var(--primary-color)";
-                        playDocBtn.innerHTML = "<span class='play-triangle'>▶</span>";
-                        videoArea.classList.remove("playing");
-                        isPlaying = false;
-                    }, 5000);
-                }
+                // Play audio and sync background video
+                audioTrack.play();
+                bgVideo.play();
             }
         });
-    }
 
-    // Populate voices for SpeechSynthesis (required for some browsers)
-    if (synth && synth.onvoiceschanged !== undefined) {
-        synth.onvoiceschanged = () => {};
+        // Sync subtitles dynamically as audio plays
+        audioTrack.addEventListener("timeupdate", updateSubtitles);
+
+        // Reset player UI state when audio track finishes playing
+        audioTrack.addEventListener("ended", () => {
+            statusText.innerText = "FINISHED";
+            statusText.style.color = "var(--primary-color)";
+            playDocBtn.innerHTML = "<span class='play-triangle'>▶</span>";
+            videoArea.classList.remove("playing");
+            subtitleOverlay.classList.remove("active");
+            bgVideo.pause();
+            bgVideo.currentTime = 0;
+            isPlaying = false;
+        });
     }
 });
