@@ -245,24 +245,20 @@ document.addEventListener("DOMContentLoaded", () => {
        Cinematic Documentary Typing Feature with Text-To-Speech Audio
        ========================================================================== */
     const playDocBtn = document.getElementById("play-doc-btn");
-    const docParagraph = document.getElementById("doc-paragraph");
     const statusText = document.querySelector(".status-indicator");
     const videoArea = document.querySelector(".doc-video-area");
 
     const documentaryScript = "In the heart of Mysore, a young boy named K V Aryan Urs first touched a football. Nobody predicted that years later, on the fields of PES University, he would command the pitch under the eyes of coach Jagath Saradigi. Every turn, every diagonal run, and every clinical assist whispers one name across the campus: The Mysuru Messi.";
 
-    let typingTimer = null;
     let isPlaying = false;
     let synth = window.speechSynthesis;
     let utterance = null;
 
-    if (playDocBtn && docParagraph && statusText && videoArea) {
+    if (playDocBtn && statusText && videoArea) {
         playDocBtn.addEventListener("click", () => {
             if (isPlaying) {
                 // Pause / Stop documentary and voice
-                clearInterval(typingTimer);
                 if (synth) synth.cancel();
-                docParagraph.innerText = "Documentary playback stopped. Click play to restart.";
                 statusText.innerText = "STANDBY";
                 statusText.style.color = "var(--text-muted)";
                 playDocBtn.innerHTML = "<span class='play-triangle'>▶</span>";
@@ -271,8 +267,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 // Start documentary narration and voice
                 isPlaying = true;
-                docParagraph.innerText = "";
-                statusText.innerText = "PLAYING NARRATIVE INTRO";
+                statusText.innerText = "PLAYING AUDIO NARRATIVE";
                 statusText.style.color = "var(--secondary-color)";
                 playDocBtn.innerHTML = "<span style='font-size:1.8rem; font-weight:bold;'>||</span>";
                 videoArea.classList.add("playing");
@@ -282,16 +277,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     synth.cancel(); // Reset any ongoing audio
                     utterance = new SpeechSynthesisUtterance(documentaryScript);
                     
-                    // Try to find a deep/narrator voice or male voice
                     const voices = synth.getVoices();
                     const preferredVoice = voices.find(voice => voice.name.includes("Google US English") || voice.name.includes("Natural") || voice.name.includes("Male"));
                     if (preferredVoice) utterance.voice = preferredVoice;
                     
-                    utterance.rate = 0.85; // Slightly slower, cinematic narration pace
+                    utterance.rate = 0.85; // Cinematic narration pace
                     utterance.pitch = 0.9;  // Deepen pitch slightly
                     
                     utterance.onend = () => {
-                        clearInterval(typingTimer);
                         statusText.innerText = "FINISHED";
                         statusText.style.color = "var(--primary-color)";
                         playDocBtn.innerHTML = "<span class='play-triangle'>▶</span>";
@@ -300,22 +293,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     };
                     
                     synth.speak(utterance);
-                }
-
-                let charIndex = 0;
-                typingTimer = setInterval(() => {
-                    if (charIndex < documentaryScript.length) {
-                        docParagraph.innerText += documentaryScript.charAt(charIndex);
-                        charIndex++;
-                    } else if (!synth) { // Fallback if SpeechSynthesis is not supported
-                        clearInterval(typingTimer);
+                } else {
+                    // Fallback for browsers without speech synthesis
+                    setTimeout(() => {
                         statusText.innerText = "FINISHED";
                         statusText.style.color = "var(--primary-color)";
                         playDocBtn.innerHTML = "<span class='play-triangle'>▶</span>";
                         videoArea.classList.remove("playing");
                         isPlaying = false;
-                    }
-                }, 40); // Narrator typing speed
+                    }, 5000);
+                }
             }
         });
     }
