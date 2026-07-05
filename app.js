@@ -263,13 +263,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let isPlaying = false;
     let canvasTime = 0;
-    let playerSpeed = 0.04; // Calm standby speed
 
-    if (playDocBtn && statusText && videoArea && docCanvas && subtitleOverlay) {
-        const docCtx = docCanvas.getContext("2d");
+    if (playDocBtn && statusText && videoArea && bgVideo && subtitleOverlay) {
+        const docCtx = docCanvas ? docCanvas.getContext("2d") : null;
 
         // Responsive Canvas Resizer
         const resizeCanvas = () => {
+            if (!docCanvas || !docCtx) return;
             const rect = docCanvas.getBoundingClientRect();
             const dpr = window.devicePixelRatio || 1;
             docCanvas.width = rect.width * dpr;
