@@ -497,9 +497,12 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!docCanvas || !docCtx) return;
             const rect = docCanvas.getBoundingClientRect();
             const dpr = window.devicePixelRatio || 1;
-            docCanvas.width = rect.width * dpr;
-            docCanvas.height = rect.height * dpr;
+            const w = Math.floor(rect.width * dpr);
+            const h = Math.floor(rect.height * dpr);
+            docCanvas.width = w;
+            docCanvas.height = h;
             docCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            logInfoToPanel("CANVAS_RESIZE", `Canvas set to ${w}x${h} (DPR: ${dpr}, rect: ${Math.round(rect.width)}x${Math.round(rect.height)})`);
         };
 
         window.addEventListener("resize", resizeCanvas);
@@ -948,10 +951,29 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         // Main Animation Render Loop with Fallback Stopwatch Timing
+        let hasLoggedZeroSize = false;
+        let lastLoggedTime = 0;
+        let frameCount = 0;
+
         const renderLoop = () => {
             if (!docCanvas || !docCtx) {
                 requestAnimationFrame(renderLoop);
                 return;
+            }
+
+            frameCount++;
+            // Check canvas dimensions dynamically every 30 frames or if dimensions are 0
+            if (docCanvas.width === 0 || docCanvas.height === 0 || frameCount % 30 === 0) {
+                const rect = docCanvas.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+                const targetWidth = Math.floor(rect.width * dpr);
+                const targetHeight = Math.floor(rect.height * dpr);
+                if (targetWidth > 0 && targetHeight > 0 && (docCanvas.width !== targetWidth || docCanvas.height !== targetHeight)) {
+                    docCanvas.width = targetWidth;
+                    docCanvas.height = targetHeight;
+                    docCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                    logInfoToPanel("CANVAS_RESIZE", `Dynamic resize triggered: ${targetWidth}x${targetHeight}`);
+                }
             }
 
             const width = docCanvas.width / (window.devicePixelRatio || 1);
@@ -963,6 +985,7 @@ document.addEventListener("DOMContentLoaded", () => {
             lastFrameTime = now;
 
             if (width > 0 && height > 0) {
+                hasLoggedZeroSize = false; // reset
                 // Dynamic time calculation (synced with audio if active & advancing, otherwise independent stopwatch fallback)
                 let t = 0;
                 if (isPlaying) {
@@ -1253,6 +1276,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     docCtx.fill();
                 }
                 docCtx.restore();
+            } else {
+                const curTime = Date.now();
+                if (!hasLoggedZeroSize || curTime - lastLoggedTime > 5000) {
+                    logErrorToPanel("CANVAS_ZERO", `Render skipped because canvas has 0 size: ${docCanvas.width}x${docCanvas.height} (bounding rect: ${Math.round(docCanvas.getBoundingClientRect().width)}x${Math.round(docCanvas.getBoundingClientRect().height)})`);
+                    hasLoggedZeroSize = true;
+                    lastLoggedTime = curTime;
+                }
             }
 
             requestAnimationFrame(renderLoop);
