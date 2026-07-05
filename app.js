@@ -1,6 +1,200 @@
 // Interactive elements, modal, sliders, radar chart, and documentary animation
 document.addEventListener("DOMContentLoaded", () => {
     
+    // Create the diagnostic console as early as possible
+    // Diagnostic / Error Console Overlay
+    const createDiagnosticConsole = () => {
+        if (document.getElementById("sys-logs-trigger")) return;
+        
+        // Create trigger button
+        const trigger = document.createElement("button");
+        trigger.id = "sys-logs-trigger";
+        trigger.innerHTML = "⚙️ Diagnostics";
+        trigger.style.position = "fixed";
+        trigger.style.bottom = "15px";
+        trigger.style.right = "15px";
+        trigger.style.zIndex = "10000";
+        trigger.style.background = "rgba(18, 22, 33, 0.95)";
+        trigger.style.border = "1px solid #ffd700";
+        trigger.style.color = "#ffd700";
+        trigger.style.padding = "8px 14px";
+        trigger.style.borderRadius = "20px";
+        trigger.style.fontSize = "0.75rem";
+        trigger.style.fontWeight = "bold";
+        trigger.style.cursor = "pointer";
+        trigger.style.boxShadow = "0 4px 16px rgba(0,0,0,0.6)";
+        trigger.style.transition = "transform 0.2s ease, background 0.2s ease";
+        trigger.style.display = "flex";
+        trigger.style.alignItems = "center";
+        trigger.style.gap = "6px";
+        trigger.style.fontFamily = "'Plus Jakarta Sans', sans-serif";
+
+        // Create console panel
+        const panel = document.createElement("div");
+        panel.id = "sys-logs-panel";
+        panel.style.position = "fixed";
+        panel.style.bottom = "60px";
+        panel.style.right = "15px";
+        panel.style.width = "350px";
+        panel.style.maxHeight = "400px";
+        panel.style.background = "#070a12";
+        panel.style.border = "1px solid rgba(255, 255, 255, 0.12)";
+        panel.style.borderRadius = "14px";
+        panel.style.boxShadow = "0 12px 40px rgba(0,0,0,0.85)";
+        panel.style.zIndex = "10001";
+        panel.style.display = "none";
+        panel.style.flexDirection = "column";
+        panel.style.overflow = "hidden";
+        panel.style.fontFamily = "monospace";
+
+        // Header
+        const header = document.createElement("div");
+        header.style.padding = "12px 16px";
+        header.style.background = "rgba(255, 255, 255, 0.04)";
+        header.style.borderBottom = "1px solid rgba(255, 255, 255, 0.08)";
+        header.style.display = "flex";
+        header.style.justifyContent = "space-between";
+        header.style.alignItems = "center";
+        header.innerHTML = `<span style="color: #ffd700; font-size: 0.8rem; font-weight: bold; letter-spacing: 0.05em;">SYSTEM DIAGNOSTICS</span>`;
+
+        const closeBtn = document.createElement("span");
+        closeBtn.innerHTML = "&times;";
+        closeBtn.style.color = "#9ca3af";
+        closeBtn.style.cursor = "pointer";
+        closeBtn.style.fontSize = "1.4rem";
+        closeBtn.style.fontWeight = "bold";
+        closeBtn.style.lineHeight = "1";
+        closeBtn.onclick = () => { panel.style.display = "none"; };
+        header.appendChild(closeBtn);
+
+        // Content Area for Logs
+        const logContent = document.createElement("div");
+        logContent.id = "sys-log-content";
+        logContent.style.padding = "14px";
+        logContent.style.flex = "1";
+        logContent.style.overflowY = "auto";
+        logContent.style.fontSize = "0.75rem";
+        logContent.style.color = "#e5e7eb";
+        logContent.style.lineHeight = "1.5";
+        logContent.style.maxHeight = "280px";
+
+        // Initial welcome message
+        logContent.innerHTML = `<div style="color: #8b5cf6; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px; margin-bottom: 8px; font-weight: bold;">[SYSTEM INIT] Diagnostic engine online. Monitoring audio playback and canvas synchronization.</div>`;
+
+        // Footer Actions
+        const footer = document.createElement("div");
+        footer.style.padding = "10px 14px";
+        footer.style.background = "rgba(0,0,0,0.5)";
+        footer.style.borderTop = "1px solid rgba(255, 255, 255, 0.08)";
+        footer.style.display = "flex";
+        footer.style.justifyContent = "space-between";
+        footer.style.alignItems = "center";
+        
+        const copyBtn = document.createElement("button");
+        copyBtn.innerHTML = "📋 Copy Logs";
+        copyBtn.style.background = "rgba(255, 215, 0, 0.08)";
+        copyBtn.style.border = "1px solid #ffd700";
+        copyBtn.style.color = "#ffd700";
+        copyBtn.style.fontSize = "0.7rem";
+        copyBtn.style.padding = "5px 10px";
+        copyBtn.style.borderRadius = "6px";
+        copyBtn.style.cursor = "pointer";
+        copyBtn.style.fontWeight = "bold";
+        copyBtn.style.transition = "background 0.2s ease";
+        copyBtn.onmouseenter = () => { copyBtn.style.background = "rgba(255, 215, 0, 0.15)"; };
+        copyBtn.onmouseleave = () => { copyBtn.style.background = "rgba(255, 215, 0, 0.08)"; };
+        copyBtn.onclick = () => {
+            const logsText = Array.from(logContent.children).map(child => child.innerText).join("\n");
+            navigator.clipboard.writeText(logsText).then(() => {
+                copyBtn.innerHTML = "✓ Copied!";
+                setTimeout(() => { copyBtn.innerHTML = "📋 Copy Logs"; }, 2000);
+            }).catch(err => {
+                alert("Please manually copy: " + logsText);
+            });
+        };
+
+        const clearBtn = document.createElement("button");
+        clearBtn.innerHTML = "Clear";
+        clearBtn.style.background = "transparent";
+        clearBtn.style.border = "1px solid rgba(255,255,255,0.15)";
+        clearBtn.style.color = "#9ca3af";
+        clearBtn.style.fontSize = "0.7rem";
+        clearBtn.style.padding = "5px 10px";
+        clearBtn.style.borderRadius = "6px";
+        clearBtn.style.cursor = "pointer";
+        clearBtn.onclick = () => {
+            logContent.innerHTML = `<div style="color: #6b7280; padding-bottom: 8px;">[SYSTEM] Logs cleared.</div>`;
+        };
+
+        footer.appendChild(copyBtn);
+        footer.appendChild(clearBtn);
+
+        panel.appendChild(header);
+        panel.appendChild(logContent);
+        panel.appendChild(footer);
+
+        document.body.appendChild(trigger);
+        document.body.appendChild(panel);
+
+        trigger.onclick = () => {
+            if (panel.style.display === "none" || panel.style.display === "") {
+                panel.style.display = "flex";
+            } else {
+                panel.style.display = "none";
+            }
+        };
+
+        // Window error hook
+        window.addEventListener("error", (event) => {
+            logErrorToPanel("UNCAUGHT ERROR", `${event.message} (${event.filename}:${event.lineno}:${event.colno})`);
+            panel.style.display = "flex";
+            trigger.style.background = "rgba(220, 38, 38, 0.95)";
+            trigger.style.borderColor = "#f87171";
+            trigger.style.color = "#ffffff";
+            trigger.innerHTML = "⚠️ Diagnostic Alert!";
+        });
+
+        // Promise rejection hook
+        window.addEventListener("unhandledrejection", (event) => {
+            logErrorToPanel("UNHANDLED REJECTION", event.reason ? (event.reason.message || event.reason) : "Unhandled Promise rejection");
+            panel.style.display = "flex";
+            trigger.style.background = "rgba(220, 38, 38, 0.95)";
+            trigger.style.borderColor = "#f87171";
+            trigger.style.color = "#ffffff";
+            trigger.innerHTML = "⚠️ Diagnostic Alert!";
+        });
+    };
+
+    const logErrorToPanel = (type, message) => {
+        const logContent = document.getElementById("sys-log-content");
+        if (logContent) {
+            const timeStr = new Date().toTimeString().split(' ')[0];
+            const item = document.createElement("div");
+            item.style.padding = "6px 0";
+            item.style.borderBottom = "1px solid rgba(255,255,255,0.04)";
+            item.style.color = "#f87171";
+            item.innerHTML = `<span style="color: #ef4444; font-weight: bold;">[${timeStr} - ${type}]</span> ${message}`;
+            logContent.appendChild(item);
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+    };
+
+    const logInfoToPanel = (type, message) => {
+        const logContent = document.getElementById("sys-log-content");
+        if (logContent) {
+            const timeStr = new Date().toTimeString().split(' ')[0];
+            const item = document.createElement("div");
+            item.style.padding = "6px 0";
+            item.style.borderBottom = "1px solid rgba(255,255,255,0.04)";
+            item.style.color = "#10b981";
+            item.innerHTML = `<span style="color: #10b981; font-weight: bold;">[${timeStr} - ${type}]</span> ${message}`;
+            logContent.appendChild(item);
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+    };
+
+    createDiagnosticConsole();
+
     /* ==========================================================================
        Stats Counter Animation
        ========================================================================== */
@@ -247,12 +441,36 @@ document.addEventListener("DOMContentLoaded", () => {
     const playDocBtn = document.getElementById("play-doc-btn");
     const statusText = document.querySelector(".status-indicator");
     const videoArea = document.querySelector(".doc-video-container");
-    const bgVideo = document.getElementById("doc-bg-video");
     const docCanvas = document.getElementById("doc-canvas");
     const subtitleOverlay = document.getElementById("doc-subtitles");
 
-    // Audio Object using local narrator track
-    const audioTrack = new Audio("narrator.mp3");
+    // Initialize Audio Track with robust safety and tracking
+    let audioTrack = null;
+    try {
+        audioTrack = new Audio("narrator.mp3");
+        audioTrack.preload = "auto";
+        logInfoToPanel("AUDIO", "Loading 'narrator.mp3' track in background...");
+        
+        audioTrack.addEventListener("canplaythrough", () => {
+            logInfoToPanel("AUDIO", "narrator.mp3 loaded and is fully ready for playback!");
+        });
+        
+        audioTrack.addEventListener("error", (e) => {
+            const err = audioTrack ? audioTrack.error : null;
+            let errMsg = "Unknown file loading error";
+            if (err) {
+                switch (err.code) {
+                    case err.MEDIA_ERR_ABORTED: errMsg = "Audio playback/loading aborted by the user."; break;
+                    case err.MEDIA_ERR_NETWORK: errMsg = "Network failure or CORS restriction. Check if file is served correctly."; break;
+                    case err.MEDIA_ERR_DECODE: errMsg = "Audio format decoding failed (file may be corrupted or codec unsupported)."; break;
+                    case err.MEDIA_ERR_SRC_NOT_SUPPORTED: errMsg = "File not found (404) or media format not supported."; break;
+                }
+            }
+            logErrorToPanel("AUDIO_LOAD_ERROR", `${errMsg} (CWD Check: verify narrator.mp3 exists at site root)`);
+        });
+    } catch (e) {
+        logErrorToPanel("AUDIO_INIT", `Failed to instantiate Audio object: ${e.message}`);
+    }
 
     // Explicit subtitle timestamps mapping to narrator.mp3 timing
     const subtitleTracks = [
@@ -264,8 +482,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let isPlaying = false;
     let canvasTime = 0;
+    let playerSpeed = 0.04; // Calm standby speed
 
-    if (playDocBtn && statusText && videoArea && bgVideo && subtitleOverlay) {
+    // Fallback/Independent timing engine to guarantee animation play even if audio fails
+    let documentaryTime = 0;
+    let lastFrameTime = performance.now();
+    let lastAudioTime = -1;
+
+    if (playDocBtn && statusText && videoArea && docCanvas && subtitleOverlay) {
         const docCtx = docCanvas ? docCanvas.getContext("2d") : null;
 
         // Responsive Canvas Resizer
@@ -723,19 +947,57 @@ document.addEventListener("DOMContentLoaded", () => {
             ctx.restore();
         };
 
-        // Main Animation Render Loop
+        // Main Animation Render Loop with Fallback Stopwatch Timing
         const renderLoop = () => {
-            if (!docCanvas) return;
+            if (!docCanvas || !docCtx) {
+                requestAnimationFrame(renderLoop);
+                return;
+            }
+
             const width = docCanvas.width / (window.devicePixelRatio || 1);
             const height = docCanvas.height / (window.devicePixelRatio || 1);
 
+            // Compute elapsed frame time for independent animation tracking
+            const now = performance.now();
+            const deltaTime = Math.min((now - lastFrameTime) / 1000, 0.1); // cap to avoid giant skips
+            lastFrameTime = now;
+
             if (width > 0 && height > 0) {
-                // Dynamic time calculation (synced with audio if playing, auto-looping in standby)
+                // Dynamic time calculation (synced with audio if active & advancing, otherwise independent stopwatch fallback)
                 let t = 0;
                 if (isPlaying) {
-                    t = audioTrack.currentTime;
+                    let audioIsAdvancing = false;
+                    try {
+                        if (audioTrack && !audioTrack.paused && audioTrack.currentTime !== lastAudioTime && !audioTrack.muted) {
+                            audioIsAdvancing = true;
+                            lastAudioTime = audioTrack.currentTime;
+                        }
+                    } catch (err) {
+                        // ignore error
+                    }
+
+                    if (audioIsAdvancing) {
+                        // Keep our timer strictly synced to the audio
+                        documentaryTime = audioTrack.currentTime;
+                    } else {
+                        // Increment using high precision stopwatch fallback
+                        documentaryTime += deltaTime;
+                    }
+
+                    // Loop limit check for the documentary length (25s)
+                    if (documentaryTime >= 25.0) {
+                        documentaryTime = 25.0; // clamp
+                        triggerDocumentaryFinished();
+                    }
+                    
+                    t = documentaryTime;
+                    
+                    // Force render subtitles on frame ticks to guarantee synchronization
+                    updateSubtitles(t);
                 } else {
-                    t = (Date.now() / 1000) % 25; // 25-second continuous looping preview
+                    // 25-second continuous looping preview on Standby
+                    t = (Date.now() / 1000) % 25;
+                    documentaryTime = 0; // reset active play time
                 }
 
                 const targetSpeed = isPlaying ? 0.11 : 0.035;
@@ -999,8 +1261,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Kickoff the render loop
         renderLoop();
 
-        const updateSubtitles = () => {
-            const currentTime = audioTrack.currentTime;
+        const updateSubtitles = (currentTime) => {
             let activeSubtitle = subtitleTracks.find(sub => currentTime >= sub.start && currentTime < sub.end);
             
             if (activeSubtitle) {
@@ -1011,52 +1272,70 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
 
-        // Play/Pause interaction
-        playDocBtn.addEventListener("click", () => {
-            try {
-                if (isPlaying) {
-                    // Pause narration & animations
-                    audioTrack.pause();
-                    statusText.innerText = "STANDBY";
-                    statusText.style.color = "var(--text-muted)";
-                    playDocBtn.innerHTML = "<span class='play-triangle'>▶</span>";
-                    videoArea.classList.remove("playing");
-                    subtitleOverlay.classList.remove("active");
-                    isPlaying = false;
-                } else {
-                    // Play / resume
-                    isPlaying = true;
-                    statusText.innerText = "PLAYING DOCUMENTARY";
-                    statusText.style.color = "var(--secondary-color)";
-                    playDocBtn.innerHTML = "<span style='font-size:1.8rem; font-weight:bold;'>||</span>";
-                    videoArea.classList.add("playing");
-                    
-                    const playAudioPromise = audioTrack.play();
-                    if (playAudioPromise !== undefined) {
-                        playAudioPromise.catch(error => {
-                            console.error("Audio playback blocked:", error);
-                            statusText.innerText = "AUDIO PLAY ERROR";
-                            alert("Audio play blocked: " + error.message);
-                        });
-                    }
-                }
-            } catch (err) {
-                console.error("Click handler crash:", err);
-                alert("Player encountered error: " + err.message + "\nStack: " + err.stack);
-            }
-        });
-
-        // Sync subtitles dynamically as audio plays
-        audioTrack.addEventListener("timeupdate", updateSubtitles);
-
-        // Reset player UI state when audio track finishes playing
-        audioTrack.addEventListener("ended", () => {
+        const triggerDocumentaryFinished = () => {
+            if (!isPlaying) return;
+            logInfoToPanel("SYSTEM", "Documentary playback finished.");
             statusText.innerText = "FINISHED";
             statusText.style.color = "var(--primary-color)";
             playDocBtn.innerHTML = "<span class='play-triangle'>▶</span>";
             videoArea.classList.remove("playing");
             subtitleOverlay.classList.remove("active");
             isPlaying = false;
+            documentaryTime = 0;
+            try {
+                if (audioTrack) {
+                    audioTrack.pause();
+                    audioTrack.currentTime = 0;
+                }
+            } catch (e) {}
+        };
+
+        // Play/Pause interaction
+        playDocBtn.addEventListener("click", () => {
+            if (isPlaying) {
+                // Pause narration & animations
+                try {
+                    if (audioTrack) audioTrack.pause();
+                } catch (e) {
+                    logErrorToPanel("AUDIO", `Pause error: ${e.message}`);
+                }
+                statusText.innerText = "STANDBY";
+                statusText.style.color = "var(--text-muted)";
+                playDocBtn.innerHTML = "<span class='play-triangle'>▶</span>";
+                videoArea.classList.remove("playing");
+                subtitleOverlay.classList.remove("active");
+                isPlaying = false;
+                logInfoToPanel("SYSTEM", "Documentary paused.");
+            } else {
+                // Play / resume
+                isPlaying = true;
+                lastFrameTime = performance.now(); // reset delta reference
+                statusText.innerText = "PLAYING DOCUMENTARY";
+                statusText.style.color = "var(--secondary-color)";
+                playDocBtn.innerHTML = "<span style='font-size:1.8rem; font-weight:bold;'>||</span>";
+                videoArea.classList.add("playing");
+                logInfoToPanel("SYSTEM", "Playback initiated. Starting synchronization loop.");
+                
+                if (audioTrack) {
+                    const playAudioPromise = audioTrack.play();
+                    if (playAudioPromise !== undefined) {
+                        playAudioPromise.then(() => {
+                            logInfoToPanel("AUDIO", "Audio narration started playing successfully.");
+                        }).catch(error => {
+                            console.log("Audio playback blocked by browser security. Retrying...", error);
+                            logErrorToPanel("AUDIO_BLOCKED", "Audio playback was blocked or deferred by browser autoplay restrictions. The visual animation will play with programmatic timing, click again to attempt audio unmute.");
+                            statusText.innerText = "AUDIO BLOCKED (TAP TO UNMUTE)";
+                        });
+                    }
+                } else {
+                    logErrorToPanel("PLAYBACK", "No Audio Track found. Playing visual sequence in standalone video mode.");
+                }
+            }
         });
+
+        if (audioTrack) {
+            // Reset player UI state when audio track finishes playing
+            audioTrack.addEventListener("ended", triggerDocumentaryFinished);
+        }
     }
 });
