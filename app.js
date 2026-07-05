@@ -297,8 +297,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 videoArea.classList.add("playing");
                 
                 // Play audio and sync background video
-                audioTrack.play();
-                bgVideo.play();
+                const playAudioPromise = audioTrack.play();
+                const playVideoPromise = bgVideo.play();
+                
+                if (playAudioPromise !== undefined) {
+                    playAudioPromise.catch(error => {
+                        console.log("Audio playback blocked by browser security. Retrying on user interaction...", error);
+                        statusText.innerText = "AUDIO BLOCKED (TAP TO UNMUTE)";
+                    });
+                }
+                
+                if (playVideoPromise !== undefined) {
+                    playVideoPromise.catch(error => {
+                        console.log("Video playback blocked by browser security...", error);
+                    });
+                }
             }
         });
 
