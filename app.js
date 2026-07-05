@@ -247,6 +247,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const playDocBtn = document.getElementById("play-doc-btn");
     const statusText = document.querySelector(".status-indicator");
     const videoArea = document.querySelector(".doc-video-container");
+    const bgVideo = document.getElementById("doc-bg-video");
     const docCanvas = document.getElementById("doc-canvas");
     const subtitleOverlay = document.getElementById("doc-subtitles");
 
