@@ -737,10 +737,14 @@ section {
     transition: var(--transition-smooth);
     z-index: 10;
     box-shadow: 0 0 25px rgba(255, 215, 0, 0.3);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .play-overlay:hover {
-    transform: scale(1.08);
+    transform: translate(-50%, -50%) scale(1.08);
     background: var(--secondary-color);
     box-shadow: 0 0 35px rgba(0, 255, 136, 0.5);
 }
@@ -748,23 +752,26 @@ section {
 /* Subtitle HUD Centered at Bottom of Video */
 .subtitle-overlay {
     position: absolute;
-    bottom: 45px;
-    left: 8%;
-    right: 8%;
+    bottom: 25px;
+    left: 5%;
+    right: 5%;
     text-align: center;
-    background: rgba(4, 5, 8, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(4, 5, 8, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     color: #fff;
-    padding: 0.8rem 1.5rem;
-    border-radius: 8px;
-    font-size: clamp(0.95rem, 2.2vw, 1.25rem);
-    font-weight: 500;
-    line-height: 1.5;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-size: clamp(0.95rem, 2.2vw, 1.2rem);
+    font-weight: 700;
+    line-height: 1.4;
     z-index: 8;
     backdrop-filter: blur(10px);
     opacity: 0;
     visibility: hidden;
-    transform: translateY(10px);
+    transform: translate(-50%, 10px);
+    left: 50%;
+    width: 90%;
+    max-width: 600px;
     transition: all 0.3s ease;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
@@ -772,7 +779,7 @@ section {
 .subtitle-overlay.active {
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
+    transform: translate(-50%, 0);
 }
 
 .audio-hud {

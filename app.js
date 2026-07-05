@@ -255,10 +255,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Explicit subtitle timestamps mapping to narrator.mp3 timing
     const subtitleTracks = [
-        { start: 0.0, end: 4.8, text: "In the heart of Mysore, a young boy named K V Aryan Urs first touched a football." },
-        { start: 4.8, end: 11.2, text: "Nobody predicted that years later, on the fields of PES University..." },
-        { start: 11.2, end: 16.5, text: "...he would command the pitch under the eyes of coach Jagath Saradigi." },
-        { start: 16.5, end: 25.0, text: "Every turn, every diagonal run, and every clinical assist whispers one name across the campus: The Mysuru Messi." }
+        { start: 0.0, end: 5.0, text: "In the heart of Mysore, a young boy named K V Aryan Urs first touched a football." },
+        { start: 5.0, end: 10.8, text: "Nobody predicted that years later, on the fields of PES University..." },
+        { start: 10.8, end: 14.5, text: "...he would command the pitch under the eyes of coach Jagath Saradigi." },
+        { start: 14.5, end: 25.0, text: "Every turn, every diagonal run, and every clinical assist whispers one name across the campus: The Mysuru Messi." }
     ];
 
     let isPlaying = false;
