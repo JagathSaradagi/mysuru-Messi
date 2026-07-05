@@ -40,4 +40,25 @@ document.addEventListener("DOMContentLoaded", () => {
     if (statsSection) {
         observer.observe(statsSection);
     }
+
+    // Modal Interaction Logic
+    const viewBtn = document.getElementById("view-childhood-btn");
+    const photoModal = document.getElementById("photo-modal");
+    const closeModal = document.querySelector(".close-modal");
+
+    if (viewBtn && photoModal && closeModal) {
+        viewBtn.addEventListener("click", () => {
+            photoModal.style.display = "block";
+        });
+
+        closeModal.addEventListener("click", () => {
+            photoModal.style.display = "none";
+        });
+
+        window.addEventListener("click", (e) => {
+            if (e.target === photoModal) {
+                photoModal.style.display = "none";
+            }
+        });
+    }
 });
