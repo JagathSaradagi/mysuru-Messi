@@ -441,6 +441,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const playDocBtn = document.getElementById("play-doc-btn");
     const statusText = document.querySelector(".status-indicator");
     const videoArea = document.querySelector(".doc-video-container");
+    const bgVideo = document.getElementById("doc-bg-video");
     const docCanvas = document.getElementById("doc-canvas");
     const subtitleOverlay = document.getElementById("doc-subtitles");
 
@@ -489,7 +490,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let lastFrameTime = performance.now();
     let lastAudioTime = -1;
 
-    if (playDocBtn && statusText && videoArea && subtitleOverlay) {
+    if (playDocBtn && statusText && videoArea && bgVideo && subtitleOverlay) {
         const docCtx = docCanvas ? docCanvas.getContext("2d") : null;
 
         // Responsive Canvas Resizer
