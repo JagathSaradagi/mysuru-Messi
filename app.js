@@ -242,12 +242,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* ==========================================================================
-       Cinematic Documentary Audio and Subtitle Synchronizer
+       Cinematic Documentary Audio and Subtitle Synchronizer with Canvas Animation
        ========================================================================== */
     const playDocBtn = document.getElementById("play-doc-btn");
     const statusText = document.querySelector(".status-indicator");
     const videoArea = document.querySelector(".doc-video-container");
-    const bgVideo = document.getElementById("doc-bg-video");
+    const docCanvas = document.getElementById("doc-canvas");
     const subtitleOverlay = document.getElementById("doc-subtitles");
 
     // Audio Object using local narrator track
@@ -255,16 +255,748 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Explicit subtitle timestamps mapping to narrator.mp3 timing
     const subtitleTracks = [
-        { start: 0.0, end: 5.0, text: "In the heart of Mysore, a young boy named K V Aryan Urs first touched a football." },
-        { start: 5.0, end: 10.8, text: "Nobody predicted that years later, on the fields of PES University..." },
-        { start: 10.8, end: 14.5, text: "...he would command the pitch under the eyes of coach Jagath Saradigi." },
-        { start: 14.5, end: 25.0, text: "Every turn, every diagonal run, and every clinical assist whispers one name across the campus: The Mysuru Messi." }
+        { start: 0.0, end: 5.4, text: "In the heart of Mysore..." },
+        { start: 5.4, end: 10.4, text: "Nobody predicted..." },
+        { start: 10.4, end: 14.5, text: "...under the eyes of coach Jagath Saradigi." },
+        { start: 14.5, end: 25.0, text: "Every turn, every diagonal run..." }
     ];
 
     let isPlaying = false;
+    let canvasTime = 0;
+    let playerSpeed = 0.04; // Calm standby speed
 
-    if (playDocBtn && statusText && videoArea && bgVideo && subtitleOverlay) {
-        
+    if (playDocBtn && statusText && videoArea && docCanvas && subtitleOverlay) {
+        const docCtx = docCanvas.getContext("2d");
+
+        // Responsive Canvas Resizer
+        const resizeCanvas = () => {
+            const rect = docCanvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            docCanvas.width = rect.width * dpr;
+            docCanvas.height = rect.height * dpr;
+            docCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        };
+
+        window.addEventListener("resize", resizeCanvas);
+        // Initial sizing
+        setTimeout(resizeCanvas, 100);
+
+        // Particle System for turf, dust, and celebratory confetti
+        class Particle {
+            constructor(x, y, type = "dust") {
+                this.x = x;
+                this.y = y;
+                this.type = type; // "dust", "grass", "confetti"
+                
+                if (type === "grass") {
+                    this.vx = (Math.random() - 0.7) * 4.5 - 2;
+                    this.vy = (Math.random() - 0.6) * 5 - 3.5;
+                    this.size = Math.random() * 4 + 1.5;
+                    this.color = `rgba(${Math.floor(Math.random() * 30)}, ${Math.floor(Math.random() * 90 + 130)}, ${Math.floor(Math.random() * 30)}, 1)`;
+                    this.decay = Math.random() * 0.02 + 0.015;
+                    this.gravity = 0.22;
+                } else if (type === "confetti") {
+                    this.vx = (Math.random() - 0.5) * 5;
+                    this.vy = Math.random() * 2.5 + 1.5;
+                    this.size = Math.random() * 5 + 3.5;
+                    this.color = `hsla(${Math.random() * 360}, 95%, 65%, 1)`;
+                    this.decay = Math.random() * 0.006 + 0.003;
+                    this.gravity = 0.04;
+                    this.rotation = Math.random() * Math.PI * 2;
+                    this.rotSpeed = (Math.random() - 0.5) * 0.12;
+                } else {
+                    // Dust
+                    this.vx = (Math.random() - 0.5) * 1.5 - 0.5;
+                    this.vy = (Math.random() - 0.5) * 1.2 - 0.5;
+                    this.size = Math.random() * 2 + 1;
+                    this.color = "rgba(255, 255, 255, 0.35)";
+                    this.decay = Math.random() * 0.025 + 0.012;
+                    this.gravity = 0;
+                }
+                this.alpha = 1;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += this.gravity;
+                this.alpha -= this.decay;
+                if (this.type === "confetti") {
+                    this.rotation += this.rotSpeed;
+                }
+            }
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.alpha);
+                if (this.type === "grass") {
+                    ctx.fillStyle = this.color;
+                    ctx.translate(this.x, this.y);
+                    ctx.rotate(Math.random() * Math.PI);
+                    ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size * 2);
+                } else if (this.type === "confetti") {
+                    ctx.fillStyle = this.color;
+                    ctx.translate(this.x, this.y);
+                    ctx.rotate(this.rotation);
+                    ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                } else {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+        }
+
+        const particles = [];
+
+        // Core Match Coordinates Timeline Solver
+        const getWorldPositions = (t, width, height) => {
+            let playerX = 150;
+            let playerY = height * 0.72;
+            let ballX = 190;
+            let ballY = height * 0.73;
+            let cameraX = 0;
+            let isShooting = false;
+            let isGoal = false;
+            let isCelebrating = false;
+            let netRipple = 0;
+
+            if (t < 5.4) {
+                // Phase 1: Midfield Run (0 to 5.4s)
+                const p = t / 5.4;
+                playerX = 150 + p * 500; // 150 -> 650
+                playerY = height * 0.72 + Math.sin(t * 3.5) * 6;
+                cameraX = playerX - width * 0.35;
+
+                // Ball dribbling in front of player
+                ballX = playerX + 24 + Math.sin(t * 7) * 4;
+                ballY = playerY + 14;
+            } else if (t < 10.4) {
+                // Phase 2: First & Second Defenders (5.4s to 10.4s)
+                const p = (t - 5.4) / 5.0;
+                playerX = 650 + p * 500; // 650 -> 1150
+                
+                // Fast zig-zag feints around defender positions
+                let slalom = 0;
+                if (p < 0.5) {
+                    slalom = Math.sin(p * Math.PI * 2) * 28;
+                } else {
+                    slalom = -Math.sin((p - 0.5) * Math.PI * 2) * 28;
+                }
+                playerY = height * 0.72 + slalom;
+                cameraX = playerX - width * 0.35;
+
+                // Dynamic ball taps
+                const touchCycle = (t * 2.5) % 1;
+                const touchOffset = Math.sin(touchCycle * Math.PI) * 12;
+                ballX = playerX + 20 + touchOffset;
+                ballY = playerY + 14 + (slalom * 0.4);
+            } else if (t < 14.5) {
+                // Phase 3: Final Defender (10.4s to 14.5s)
+                const p = (t - 10.4) / 4.1;
+                playerX = 1150 + p * 400; // 1150 -> 1550
+                let slalom = Math.cos(p * Math.PI * 1.5) * 20;
+                playerY = height * 0.72 + slalom;
+                cameraX = playerX - width * 0.35;
+
+                ballX = playerX + 20 + Math.sin(p * Math.PI * 3) * 10;
+                ballY = playerY + 14 + slalom * 0.5;
+            } else if (t < 18.0) {
+                // Phase 4: Approach, Power Strike & Flying Ball (14.5s to 18.0s)
+                const p = (t - 14.5) / 3.5;
+                playerX = 1550 + p * 200; // 1550 -> 1750
+                playerY = height * 0.72;
+                cameraX = playerX - width * 0.35;
+
+                const shotTriggerTime = 16.2;
+                if (t < shotTriggerTime) {
+                    ballX = playerX + 26;
+                    ballY = playerY + 14;
+                } else {
+                    isShooting = true;
+                    // Ball travels fast to top corner of net (Goal line at worldX=1950, height * 0.50)
+                    const shotDuration = 1.3; // 1.3 seconds flight
+                    const shotP = Math.min(1, (t - shotTriggerTime) / shotDuration);
+                    
+                    if (shotP < 1.0) {
+                        ballX = (playerX + 26) + shotP * (1950 - (playerX + 26));
+                        ballY = (playerY + 14) + shotP * (height * 0.48 - (playerY + 14)) - Math.sin(shotP * Math.PI) * 60;
+                    } else {
+                        isGoal = true;
+                        ballX = 1954;
+                        ballY = height * 0.48 + Math.sin(t * 14) * 2.5; // spinning in net
+                        netRipple = Math.sin((t - (shotTriggerTime + shotDuration)) * 7) * 14 * Math.exp(-(t - (shotTriggerTime + shotDuration)) * 0.35);
+                    }
+                }
+            } else {
+                // Phase 5: Goal Scored & Iconic Knee Slide Celebration (18.0s to 25.0s)
+                const p = (t - 18.0) / 7.0;
+                isCelebrating = true;
+                isGoal = true;
+
+                playerX = 1750 + Math.min(p * 2.5, 1.0) * 45; // forward kneehslide
+                playerY = height * 0.74; // Kneel height
+                cameraX = playerX - width * 0.42;
+
+                // Soccer ball drops from net and rolls down
+                const dropP = Math.min(1.0, (t - 18.0) / 1.5);
+                ballX = 1954;
+                ballY = (height * 0.48) + dropP * ((height * 0.77) - (height * 0.48)) + Math.abs(Math.sin(dropP * Math.PI * 1.5)) * 14 * Math.exp(-dropP * 1.5);
+                netRipple = Math.sin(t * 1.5) * 1.5;
+            }
+
+            cameraX = Math.max(0, cameraX);
+
+            return {
+                playerX,
+                playerY,
+                ballX,
+                ballY,
+                cameraX,
+                isShooting,
+                isGoal,
+                isCelebrating,
+                netRipple
+            };
+        };
+
+        // Draw Player & Defenders Helper
+        const drawAthlete = (ctx, x, y, options) => {
+            const { isAryan, isTackling, legCycle, armCycle, isCelebrating, hairColor, skinColor, bodyBob, kitColor } = options;
+            const bob = bodyBob || 0;
+
+            ctx.save();
+            
+            // Ground shadow
+            ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+            ctx.beginPath();
+            ctx.ellipse(x, y + 36, isTackling ? 35 : (isCelebrating ? 25 : 18), 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.translate(0, bob);
+
+            if (isTackling) {
+                // Side slide tackle posture
+                ctx.translate(x, y + 12);
+                ctx.rotate(-0.4);
+
+                // Torso (Opposition kit)
+                ctx.fillStyle = kitColor || "#dc2626";
+                ctx.fillRect(-8, -16, 16, 28);
+
+                // Rear tucked leg
+                ctx.strokeStyle = "#1e293b";
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(-6, 10);
+                ctx.lineTo(-20, 14);
+                ctx.stroke();
+
+                // Forward tackling leg
+                ctx.strokeStyle = "#f3f4f6";
+                ctx.lineWidth = 7;
+                ctx.lineCap = "round";
+                ctx.beginPath();
+                ctx.moveTo(6, 10);
+                ctx.lineTo(26, 26);
+                ctx.stroke();
+
+                // Red/White cleats
+                ctx.fillStyle = "#ef4444";
+                ctx.beginPath();
+                ctx.arc(26, 26, 3.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Head
+                ctx.fillStyle = skinColor || "#e5b083";
+                ctx.beginPath();
+                ctx.arc(0, -25, 7.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Hair
+                ctx.fillStyle = hairColor || "#1e293b";
+                ctx.beginPath();
+                ctx.arc(0, -28, 8, Math.PI, Math.PI * 2);
+                ctx.fill();
+
+            } else if (isCelebrating) {
+                // Knee slide celebration! Lean back and raise hands
+                ctx.translate(x, y + 8);
+                ctx.rotate(0.22);
+
+                // Blue/Gold PES jersey
+                ctx.fillStyle = kitColor || "#1e3a8a";
+                ctx.fillRect(-9, -22, 18, 30);
+
+                // Folded legs
+                ctx.strokeStyle = "#ffd700";
+                ctx.lineWidth = 7.5;
+                ctx.lineCap = "round";
+                ctx.beginPath();
+                ctx.moveTo(-6, 8);
+                ctx.lineTo(-14, 20);
+                ctx.lineTo(-28, 22);
+                ctx.moveTo(6, 8);
+                ctx.lineTo(2, 20);
+                ctx.lineTo(-10, 22);
+                ctx.stroke();
+
+                // Raised arms
+                ctx.strokeStyle = skinColor || "#e5b083";
+                ctx.lineWidth = 4.5;
+                ctx.lineCap = "round";
+                ctx.beginPath();
+                ctx.moveTo(-9, -16);
+                ctx.lineTo(-22, -38);
+                ctx.moveTo(9, -16);
+                ctx.lineTo(22, -38);
+                ctx.stroke();
+
+                // Head
+                ctx.fillStyle = skinColor || "#e5b083";
+                ctx.beginPath();
+                ctx.arc(0, -31, 7.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Hair
+                ctx.fillStyle = hairColor || "#0f172a";
+                ctx.beginPath();
+                ctx.arc(-1, -34, 8, Math.PI * 1.1, Math.PI * 1.9);
+                ctx.fill();
+
+                if (isAryan) {
+                    ctx.save();
+                    ctx.fillStyle = "#ffd700";
+                    ctx.font = "bold 6px sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.fillText("ARYAN", 0, -10);
+                    ctx.font = "900 13px sans-serif";
+                    ctx.fillText("10", 0, 4);
+                    ctx.restore();
+                }
+
+            } else {
+                // Running / dribbling athlete posture
+                ctx.translate(x, y);
+
+                // Draw background leg
+                ctx.save();
+                ctx.rotate(legCycle);
+                ctx.strokeStyle = "#111b33";
+                ctx.lineWidth = 6.5;
+                ctx.lineCap = "round";
+                ctx.beginPath();
+                ctx.moveTo(-4, 10);
+                ctx.lineTo(0, 24);
+                ctx.stroke();
+                ctx.restore();
+
+                // Torso
+                ctx.fillStyle = kitColor || "#1e3a8a";
+                ctx.fillRect(-9, -20, 18, 32);
+
+                if (isAryan) {
+                    // Back jersey printing "ARYAN 10"
+                    ctx.save();
+                    ctx.fillStyle = "#ffd700";
+                    ctx.font = "bold 6.5px sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.fillText("ARYAN", 0, -9);
+                    ctx.font = "900 14px sans-serif";
+                    ctx.fillText("10", 0, 5);
+                    ctx.restore();
+                } else if (options.jerseyNumber) {
+                    ctx.save();
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "900 12px sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.fillText(options.jerseyNumber, 0, 4);
+                    ctx.restore();
+                }
+
+                // Draw foreground leg
+                ctx.save();
+                ctx.rotate(-legCycle);
+                ctx.strokeStyle = isAryan ? "#1d4ed8" : "#dc2626";
+                ctx.lineWidth = 7;
+                ctx.lineCap = "round";
+                ctx.beginPath();
+                ctx.moveTo(4, 10);
+                ctx.lineTo(0, 24);
+                ctx.stroke();
+                
+                // Socks/Shoes
+                ctx.translate(0, 24);
+                ctx.fillStyle = isAryan ? "#ffd700" : "#ffffff"; // Golden shoes for Aryan!
+                ctx.beginPath();
+                ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                // Arms swinging
+                ctx.strokeStyle = skinColor || "#e5b083";
+                ctx.lineWidth = 4.5;
+                ctx.lineCap = "round";
+                ctx.beginPath();
+                ctx.moveTo(-8, -12);
+                ctx.lineTo(-16 + Math.sin(armCycle) * 5, -2 + Math.cos(armCycle) * 3);
+                ctx.moveTo(8, -12);
+                ctx.lineTo(16 - Math.sin(armCycle) * 5, -2 - Math.cos(armCycle) * 3);
+                ctx.stroke();
+
+                // Head
+                ctx.fillStyle = skinColor || "#e5b083";
+                ctx.beginPath();
+                ctx.arc(0, -29, 7.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Hair
+                ctx.fillStyle = hairColor || "#0f172a";
+                ctx.beginPath();
+                ctx.arc(-1, -32, 8, Math.PI * 1.1, Math.PI * 1.9);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        };
+
+        // Reactive goal net drawer
+        const drawGoalNet = (ctx, gx, gy, gWidth, gHeight, rippleX, rippleY, rippleAmp) => {
+            ctx.save();
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
+            ctx.lineWidth = 1;
+
+            const rows = 12;
+            const cols = 7;
+
+            // Draw horizontal net coordinates
+            for (let r = 0; r <= rows; r++) {
+                ctx.beginPath();
+                const py = gy + (r / rows) * gHeight;
+                for (let c = 0; c <= cols; c++) {
+                    const px = gx + (c / cols) * gWidth;
+                    
+                    // Ripple mathematics based on distance to ball impact
+                    let dx = 0;
+                    let dy = 0;
+                    if (rippleAmp > 0) {
+                        const dist = Math.hypot(px - rippleX, py - rippleY);
+                        const influence = Math.max(0, 1 - dist / 75);
+                        dx = Math.sin(dist * 0.16 - canvasTime * 0.25) * rippleAmp * influence;
+                        dy = Math.cos(dist * 0.16 - canvasTime * 0.25) * rippleAmp * influence * 0.4;
+                    }
+
+                    if (c === 0) {
+                        ctx.moveTo(px + dx, py + dy);
+                    } else {
+                        ctx.lineTo(px + dx, py + dy);
+                    }
+                }
+                ctx.stroke();
+            }
+
+            // Draw vertical net coordinates
+            for (let c = 0; c <= cols; c++) {
+                ctx.beginPath();
+                const px = gx + (c / cols) * gWidth;
+                for (let r = 0; r <= rows; r++) {
+                    const py = gy + (r / rows) * gHeight;
+
+                    let dx = 0;
+                    let dy = 0;
+                    if (rippleAmp > 0) {
+                        const dist = Math.hypot(px - rippleX, py - rippleY);
+                        const influence = Math.max(0, 1 - dist / 75);
+                        dx = Math.sin(dist * 0.16 - canvasTime * 0.25) * rippleAmp * influence;
+                        dy = Math.cos(dist * 0.16 - canvasTime * 0.25) * rippleAmp * influence * 0.4;
+                    }
+
+                    if (r === 0) {
+                        ctx.moveTo(px + dx, py + dy);
+                    } else {
+                        ctx.lineTo(px + dx, py + dy);
+                    }
+                }
+                ctx.stroke();
+            }
+            ctx.restore();
+        };
+
+        // Main Animation Render Loop
+        const renderLoop = () => {
+            const width = docCanvas.width / (window.devicePixelRatio || 1);
+            const height = docCanvas.height / (window.devicePixelRatio || 1);
+
+            if (width > 0 && height > 0) {
+                // Dynamic time calculation (synced with audio if playing, auto-looping in standby)
+                let t = 0;
+                if (isPlaying) {
+                    t = audioTrack.currentTime;
+                } else {
+                    t = (Date.now() / 1000) % 25; // 25-second continuous looping preview
+                }
+
+                const targetSpeed = isPlaying ? 0.11 : 0.035;
+                playerSpeed += (targetSpeed - playerSpeed) * 0.08;
+                canvasTime += playerSpeed;
+
+                // Solve coordinates of elements
+                const state = getWorldPositions(t, width, height);
+
+                // 1. Draw Deep Atmosphere Stadium Sky Gradient
+                const bgGrad = docCtx.createLinearGradient(0, 0, 0, height);
+                bgGrad.addColorStop(0, "#020408");
+                bgGrad.addColorStop(0.5, "#080d19");
+                bgGrad.addColorStop(1, "#04180d"); // stadium turf glow
+                docCtx.fillStyle = bgGrad;
+                docCtx.fillRect(0, 0, width, height);
+
+                // 2. Parallax Background Stadium Crowd Silhouette (offset scrolls slower than foreground)
+                docCtx.save();
+                const parallaxX = -(state.cameraX * 0.25) % width;
+                docCtx.fillStyle = "rgba(10, 16, 30, 0.45)";
+                docCtx.beginPath();
+                // Draw uneven crowd/seats profile
+                for (let xOffset = 0; xOffset <= width + 50; xOffset += 15) {
+                    const cx = parallaxX + xOffset;
+                    const cy = height * 0.58 + Math.sin(xOffset * 0.04) * 4;
+                    if (xOffset === 0) {
+                        docCtx.moveTo(cx, height * 0.70);
+                        docCtx.lineTo(cx, cy);
+                    } else {
+                        docCtx.lineTo(cx, cy);
+                    }
+                }
+                docCtx.lineTo(parallaxX + width + 50, height * 0.70);
+                docCtx.closePath();
+                docCtx.fill();
+                docCtx.restore();
+
+                // 3. Ambient Stadium Spotlight Beams
+                const drawSpotlight = (sx, sy, angle, color) => {
+                    docCtx.save();
+                    docCtx.translate(sx, sy);
+                    docCtx.rotate(angle);
+                    
+                    const beamGrad = docCtx.createLinearGradient(0, 0, 0, height * 0.9);
+                    beamGrad.addColorStop(0, color);
+                    beamGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+                    
+                    docCtx.fillStyle = beamGrad;
+                    docCtx.beginPath();
+                    docCtx.moveTo(0, 0);
+                    docCtx.lineTo(-75, height * 0.9);
+                    docCtx.lineTo(75, height * 0.9);
+                    docCtx.closePath();
+                    docCtx.fill();
+                    docCtx.restore();
+                };
+
+                const osc = Math.sin(canvasTime * 0.12) * 0.06;
+                drawSpotlight(width * 0.2, 0, 0.4 + osc, "rgba(255, 215, 0, 0.09)"); // Gold Left
+                drawSpotlight(width * 0.8, 0, -0.4 - osc, "rgba(0, 255, 136, 0.08)"); // Neon Green Right
+
+                // 4. Draw Turf Perspective Ground
+                docCtx.save();
+                docCtx.fillStyle = "rgba(255, 255, 255, 0.04)";
+                docCtx.lineWidth = 1.5;
+                docCtx.strokeStyle = "rgba(255, 255, 255, 0.06)";
+
+                // Pitch division line
+                docCtx.beginPath();
+                docCtx.moveTo(0, height * 0.64);
+                docCtx.lineTo(width, height * 0.64);
+                docCtx.stroke();
+
+                // Horizontal lane lines scrolling past
+                const lineX = -(state.cameraX) % 180;
+                for (let lx = lineX; lx < width + 180; lx += 180) {
+                    docCtx.beginPath();
+                    docCtx.moveTo(lx, height * 0.64);
+                    docCtx.lineTo(lx - 45, height);
+                    docCtx.stroke();
+                }
+
+                // Goal area circle on pitch (only visible when camera reaches goal line)
+                const centerCircleX = 1000 - state.cameraX;
+                docCtx.beginPath();
+                docCtx.ellipse(centerCircleX, height * 0.80, 160, 45, 0, 0, Math.PI * 2);
+                docCtx.stroke();
+
+                // Goal crease markings
+                const goalCreaseX = 1950 - state.cameraX;
+                docCtx.beginPath();
+                docCtx.ellipse(goalCreaseX, height * 0.82, 120, 32, 0, Math.PI * 0.5, Math.PI * 1.5);
+                docCtx.stroke();
+
+                docCtx.restore();
+
+                // 5. Instantiating Grass clippings/turf kick particles & Confetti
+                if (isPlaying && state.playerY > height * 0.65 && Math.random() < 0.4) {
+                    particles.push(new Particle(state.playerX - state.cameraX - 10, state.playerY + 30, "grass"));
+                    particles.push(new Particle(state.playerX - state.cameraX - 10, state.playerY + 30, "dust"));
+                }
+
+                // Drop celebration confetti when goal is scored
+                if (state.isCelebrating && Math.random() < 0.35) {
+                    particles.push(new Particle(state.playerX - state.cameraX + (Math.random() - 0.5) * 80, 0, "confetti"));
+                }
+
+                // Render all particles
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    particles[i].update();
+                    if (particles[i].alpha <= 0 || particles[i].y > height + 20) {
+                        particles.splice(i, 1);
+                    } else {
+                        particles[i].draw(docCtx);
+                    }
+                }
+
+                // 6. Draw Goalpost Structure & Reactive physical net (Placed at worldX = 1950)
+                const goalX = 1950 - state.cameraX;
+                const goalY = height * 0.44;
+                const goalHeight = height * 0.38;
+                const goalWidth = 65;
+
+                // Draw Goal Net Mesh behind post
+                drawGoalNet(docCtx, goalX, goalY, goalWidth, goalHeight, 1954 - state.cameraX, height * 0.48, state.netRipple);
+
+                // Draw solid White goalpost pipes
+                docCtx.save();
+                docCtx.strokeStyle = "#ffffff";
+                docCtx.lineWidth = 4.5;
+                docCtx.lineCap = "round";
+                docCtx.shadowColor = "rgba(0, 0, 0, 0.5)";
+                docCtx.shadowBlur = 5;
+
+                ctx_drawGoalposts: {
+                    docCtx.beginPath();
+                    // Back support posts
+                    docCtx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+                    docCtx.lineWidth = 2.5;
+                    docCtx.moveTo(goalX, goalY);
+                    docCtx.lineTo(goalX + goalWidth, goalY + 25);
+                    docCtx.lineTo(goalX + goalWidth, goalY + goalHeight);
+                    docCtx.stroke();
+
+                    // Main front posts
+                    docCtx.strokeStyle = "#ffffff";
+                    docCtx.lineWidth = 4.5;
+                    docCtx.beginPath();
+                    docCtx.moveTo(goalX, goalY + goalHeight); // Left ground post
+                    docCtx.lineTo(goalX, goalY);              // Left top corner
+                    docCtx.lineTo(goalX, goalY + goalHeight); // Draw upright pipe
+                    docCtx.moveTo(goalX, goalY);
+                    docCtx.lineTo(goalX + 2, goalY + goalHeight); // Subtle projection depth
+                    docCtx.stroke();
+                }
+                docCtx.restore();
+
+                // 7. Draw Opposing Defenders along the pitch
+                // They lunge/tackle dynamically as Aryan approaches them
+                const oppositionDefenders = [
+                    { x: 740, y: height * 0.72, num: "4", tackleStart: 6.0, tackleEnd: 7.6, speed: 1.1 },
+                    { x: 1040, y: height * 0.69, num: "5", tackleStart: 8.6, tackleEnd: 10.1, speed: 1.4 },
+                    { x: 1380, y: height * 0.73, num: "3", tackleStart: 11.4, tackleEnd: 12.9, speed: 0.9 }
+                ];
+
+                oppositionDefenders.forEach(def => {
+                    const dx = def.x - state.cameraX;
+                    const dy = def.y;
+
+                    const isTackling = (t >= def.tackleStart && t <= def.tackleEnd);
+                    let displayX = dx;
+                    
+                    if (isTackling) {
+                        const tackleProgress = (t - def.tackleStart) / (def.tackleEnd - def.tackleStart);
+                        // Slide forward horizontally
+                        displayX -= tackleProgress * 30 * def.speed;
+                        
+                        // Kick up massive grass sparks at tackling foot
+                        if (Math.random() < 0.6) {
+                            particles.push(new Particle(displayX + 15, dy + 25, "grass"));
+                            particles.push(new Particle(displayX + 15, dy + 25, "dust"));
+                        }
+                    }
+
+                    // Only draw defender if visible on screen
+                    if (displayX > -50 && displayX < width + 50) {
+                        drawAthlete(docCtx, displayX, dy, {
+                            isAryan: false,
+                            isTackling,
+                            legCycle: Math.sin(canvasTime * 2.5),
+                            armCycle: Math.sin(canvasTime * 2.5),
+                            isCelebrating: false,
+                            skinColor: "#e0ac69",
+                            hairColor: "#1e293b",
+                            kitColor: "#dc2626", // Red opposition jerseys
+                            jerseyNumber: def.num,
+                            bodyBob: isTackling ? 10 : Math.sin(canvasTime * 2.5) * 3
+                        });
+                    }
+                });
+
+                // 8. Draw the Legendary Aryan Urs (Mysuru Messi)
+                const playerScreenX = state.playerX - state.cameraX;
+                const playerRunCycle = canvasTime * 2.6;
+
+                drawAthlete(docCtx, playerScreenX, state.playerY, {
+                    isAryan: true,
+                    isTackling: false,
+                    legCycle: Math.sin(playerRunCycle),
+                    armCycle: Math.sin(playerRunCycle),
+                    isCelebrating: state.isCelebrating,
+                    skinColor: "#f5c299",
+                    hairColor: "#090d16",
+                    kitColor: "#1e3a8a", // PES Royal Blue
+                    bodyBob: state.isCelebrating ? 8 : Math.sin(playerRunCycle * 2) * 4
+                });
+
+                // 9. Draw the Golden Bouncing Soccer Ball
+                const ballScreenX = state.ballX - state.cameraX;
+                const ballRadius = 8;
+                const ballRotation = canvasTime * 1.8;
+
+                docCtx.save();
+                // Ground shadow for soccer ball
+                docCtx.fillStyle = "rgba(0, 0, 0, 0.45)";
+                docCtx.beginPath();
+                docCtx.ellipse(ballScreenX, state.playerY + 36, 8, 3, 0, 0, Math.PI * 2);
+                docCtx.fill();
+
+                // Spin and draw soccer ball
+                docCtx.translate(ballScreenX, state.ballY);
+                docCtx.rotate(ballRotation);
+
+                docCtx.fillStyle = "#ffffff";
+                docCtx.beginPath();
+                docCtx.arc(0, 0, ballRadius, 0, Math.PI * 2);
+                docCtx.fill();
+
+                docCtx.strokeStyle = "#111827";
+                docCtx.lineWidth = 1;
+                docCtx.stroke();
+
+                // Distinct classic pentagon graphics on the ball
+                docCtx.fillStyle = "#1e293b";
+                for (let angle = 0; angle < Math.PI * 2; angle += (Math.PI * 2 / 5)) {
+                    docCtx.beginPath();
+                    docCtx.moveTo(0, 0);
+                    const sx = Math.cos(angle) * (ballRadius * 0.55);
+                    const sy = Math.sin(angle) * (ballRadius * 0.55);
+                    docCtx.lineTo(sx, sy);
+                    docCtx.arc(sx, sy, ballRadius * 0.28, 0, Math.PI * 2);
+                    docCtx.fill();
+                }
+                docCtx.restore();
+            }
+
+            requestAnimationFrame(renderLoop);
+        };
+
+        // Kickoff the render loop
+        renderLoop();
+
         const updateSubtitles = () => {
             const currentTime = audioTrack.currentTime;
             let activeSubtitle = subtitleTracks.find(sub => currentTime >= sub.start && currentTime < sub.end);
@@ -277,11 +1009,11 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
 
+        // Play/Pause interaction
         playDocBtn.addEventListener("click", () => {
             if (isPlaying) {
-                // Pause narration, video and animations
+                // Pause narration & animations
                 audioTrack.pause();
-                bgVideo.pause();
                 statusText.innerText = "STANDBY";
                 statusText.style.color = "var(--text-muted)";
                 playDocBtn.innerHTML = "<span class='play-triangle'>▶</span>";
@@ -289,27 +1021,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 subtitleOverlay.classList.remove("active");
                 isPlaying = false;
             } else {
-                // Start / resume playback
+                // Play / resume
                 isPlaying = true;
                 statusText.innerText = "PLAYING DOCUMENTARY";
                 statusText.style.color = "var(--secondary-color)";
                 playDocBtn.innerHTML = "<span style='font-size:1.8rem; font-weight:bold;'>||</span>";
                 videoArea.classList.add("playing");
                 
-                // Play audio and sync background video
                 const playAudioPromise = audioTrack.play();
-                const playVideoPromise = bgVideo.play();
-                
                 if (playAudioPromise !== undefined) {
                     playAudioPromise.catch(error => {
-                        console.log("Audio playback blocked by browser security. Retrying on user interaction...", error);
+                        console.log("Audio playback blocked by browser security. Retrying...", error);
                         statusText.innerText = "AUDIO BLOCKED (TAP TO UNMUTE)";
-                    });
-                }
-                
-                if (playVideoPromise !== undefined) {
-                    playVideoPromise.catch(error => {
-                        console.log("Video playback blocked by browser security...", error);
                     });
                 }
             }
@@ -325,8 +1048,6 @@ document.addEventListener("DOMContentLoaded", () => {
             playDocBtn.innerHTML = "<span class='play-triangle'>▶</span>";
             videoArea.classList.remove("playing");
             subtitleOverlay.classList.remove("active");
-            bgVideo.pause();
-            bgVideo.currentTime = 0;
             isPlaying = false;
         });
     }
