@@ -439,7 +439,6 @@ document.addEventListener("DOMContentLoaded", () => {
        Cinematic Documentary Audio and Subtitle Synchronizer with Canvas Animation
        ========================================================================== */
     const playDocBtn = document.getElementById("play-doc-btn");
-    const statusText = document.querySelector(".status-indicator");
     const videoArea = document.querySelector(".doc-video-container");
     const bgVideo = document.getElementById("doc-bg-video");
     const docCanvas = document.getElementById("doc-canvas");
@@ -490,7 +489,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let lastFrameTime = performance.now();
     let lastAudioTime = -1;
 
-    if (playDocBtn && statusText && videoArea && bgVideo && subtitleOverlay) {
+    if (playDocBtn && videoArea && bgVideo && subtitleOverlay) {
         const docCtx = docCanvas ? docCanvas.getContext("2d") : null;
 
         // Responsive Canvas Resizer
@@ -1306,8 +1305,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const triggerDocumentaryFinished = () => {
             if (!isPlaying) return;
             logInfoToPanel("SYSTEM", "Documentary playback finished.");
-            statusText.innerText = "FINISHED";
-            statusText.style.color = "var(--primary-color)";
             playDocBtn.innerHTML = "<span class='play-triangle'>▶</span>";
             videoArea.classList.remove("playing");
             subtitleOverlay.classList.remove("active");
@@ -1335,8 +1332,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 } catch (e) {
                     logErrorToPanel("VIDEO", `Pause error: ${e.message}`);
                 }
-                statusText.innerText = "STANDBY";
-                statusText.style.color = "var(--text-muted)";
                 playDocBtn.innerHTML = "<span class='play-triangle'>▶</span>";
                 videoArea.classList.remove("playing");
                 subtitleOverlay.classList.remove("active");
@@ -1346,8 +1341,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Play / resume
                 isPlaying = true;
                 lastFrameTime = performance.now(); // reset delta reference
-                statusText.innerText = "PLAYING DOCUMENTARY";
-                statusText.style.color = "var(--secondary-color)";
                 playDocBtn.innerHTML = "<span style='font-size:1.8rem; font-weight:bold;'>||</span>";
                 videoArea.classList.add("playing");
                 logInfoToPanel("SYSTEM", "Playback initiated. Starting synchronization loop.");
@@ -1371,7 +1364,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         }).catch(error => {
                             console.log("Audio playback blocked by browser security. Retrying...", error);
                             logErrorToPanel("AUDIO_BLOCKED", "Audio playback was blocked or deferred by browser autoplay restrictions. The visual animation will play with programmatic timing, click again to attempt audio unmute.");
-                            statusText.innerText = "AUDIO BLOCKED (TAP TO UNMUTE)";
                         });
                     }
                 } else {
