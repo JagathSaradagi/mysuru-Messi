@@ -725,6 +725,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Main Animation Render Loop
         const renderLoop = () => {
+            if (!docCanvas) return;
             const width = docCanvas.width / (window.devicePixelRatio || 1);
             const height = docCanvas.height / (window.devicePixelRatio || 1);
 
