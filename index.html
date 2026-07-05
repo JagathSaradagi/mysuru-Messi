@@ -79,9 +79,11 @@
             <a href="#" class="logo">M10<span>.</span></a>
             <ul class="nav-links">
                 <li><a href="#about">About</a></li>
+                <li><a href="#pitch">Tactics</a></li>
+                <li><a href="#quotes">Quotes</a></li>
+                <li><a href="#radar">Attributes</a></li>
+                <li><a href="#documentary">Docu-Series</a></li>
                 <li><a href="#stats">Stats</a></li>
-                <li><a href="#pes">PES Football</a></li>
-                <li><a href="#highlights">Highlights</a></li>
             </ul>
         </nav>
     </header>
@@ -99,7 +101,7 @@
             </p>
             <div class="cta-group">
                 <a href="#about" class="btn btn-primary">Discover the Legend</a>
-                <a href="#stats" class="btn btn-secondary">View Match Stats</a>
+                <a href="#pitch" class="btn btn-secondary">Tactical Breakdown</a>
             </div>
         </div>
         <div class="hero-visual">
@@ -129,7 +131,7 @@
                 </p>
                 <div style="margin-top: 2rem;">
                     <button id="view-childhood-btn" class="btn btn-secondary" style="border-color: var(--primary-color); color: var(--primary-color);">
-                        📸 Messi & K V Aryan Urs in their childhood days
+                        📸 click here for Messi & K V Aryan Urs childhood days Pic
                     </button>
                 </div>
             </div>
@@ -155,6 +157,150 @@
             <img src="childhood.png" alt="Messi and K V Aryan Urs in their childhood days" class="modal-image">
         </div>
     </div>
+
+    <!-- Section 1: Tactical Football Pitch -->
+    <section id="pitch" class="pitch-section container">
+        <h2 class="section-title text-center">Tactical <span class="gradient-text">Playground</span></h2>
+        <p class="section-subtitle text-center">Explore the zones where Aryan commands the match. Click the markers to view tactical breakdowns.</p>
+        <div class="pitch-container">
+            <div class="football-pitch">
+                <div class="pitch-half-line"></div>
+                <div class="pitch-center-circle"></div>
+                <div class="pitch-penalty-box penalty-left"></div>
+                <div class="pitch-penalty-box penalty-right"></div>
+                <!-- Interactive Markers -->
+                <div class="marker marker-deep" data-zone="deep" style="top: 60%; left: 35%;">
+                    <span class="marker-pulse"></span>
+                    <span class="marker-label">Deep Playmaking</span>
+                </div>
+                <div class="marker marker-half" data-zone="half" style="top: 30%; left: 55%;">
+                    <span class="marker-pulse"></span>
+                    <span class="marker-label">Half-Spaces</span>
+                </div>
+                <div class="marker marker-assist" data-zone="assist" style="top: 50%; left: 78%;">
+                    <span class="marker-pulse"></span>
+                    <span class="marker-label">Assist Zone</span>
+                </div>
+            </div>
+            <div class="tactics-card">
+                <h3 id="tactics-title">Tactical Position</h3>
+                <p id="tactics-desc">Select any pulsating radar coordinate on the pitch map to analyze K V Aryan Urs's style of play, tactical deployment, and team contribution.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: FIFA Superstars Quotes Slider -->
+    <section id="quotes" class="quotes-section">
+        <div class="container">
+            <h2 class="section-title text-center">Global <span class="gradient-text">Recognition</span></h2>
+            <p class="section-subtitle text-center">World-class superstars on hearing about K V Aryan Urs (Mysuru Messi).</p>
+            
+            <div class="carousel-container">
+                <div class="carousel-track">
+                    <!-- Lionel Messi -->
+                    <div class="carousel-slide active">
+                        <div class="star-card">
+                            <div class="star-avatar">🐐</div>
+                            <h3>Lionel Messi</h3>
+                            <span class="star-club">Inter Miami / Argentina</span>
+                            <blockquote class="star-quote">"I've seen clips of K V Aryan Urs playing at PES University. His touch and balance are incredible. People call him the Mysuru Messi, and I see why. I hope we can share a pitch one day."</blockquote>
+                        </div>
+                    </div>
+                    <!-- Cristiano Ronaldo -->
+                    <div class="carousel-slide">
+                        <div class="star-card">
+                            <div class="star-avatar">⚡</div>
+                            <h3>Cristiano Ronaldo</h3>
+                            <span class="star-club">Al Nassr / Portugal</span>
+                            <blockquote class="star-quote">"Aryan has that relentless drive. His presence of mind and game reading under pressure are top class. Keep working hard, my friend!"</blockquote>
+                        </div>
+                    </div>
+                    <!-- Neymar Jr -->
+                    <div class="carousel-slide">
+                        <div class="star-card">
+                            <div class="star-avatar">🤙</div>
+                            <h3>Neymar Jr</h3>
+                            <span class="star-club">Al Hilal / Brazil</span>
+                            <blockquote class="star-quote">"The dribbles from Aryan are pure joy to watch! He loves the ball, has great body control, and plays with a smile. Fantastic player."</blockquote>
+                        </div>
+                    </div>
+                    <!-- Kylian Mbappe -->
+                    <div class="carousel-slide">
+                        <div class="star-card">
+                            <div class="star-avatar">🚀</div>
+                            <h3>Kylian Mbappé</h3>
+                            <span class="star-club">Real Madrid / France</span>
+                            <blockquote class="star-quote">"His vision to create goals from midfield is amazing. He is orchestrating games at PES like a maestro. I look forward to meeting him."</blockquote>
+                        </div>
+                    </div>
+                    <!-- Harry Kane -->
+                    <div class="carousel-slide">
+                        <div class="star-card">
+                            <div class="star-avatar">⚽</div>
+                            <h3>Harry Kane</h3>
+                            <span class="star-club">Bayern Munich / England</span>
+                            <blockquote class="star-quote">"A striker's dream. The way Aryan threads passes from the midfield is world-class. I'd love to make runs with him passing."</blockquote>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-nav">
+                    <button class="carousel-btn prev-btn">&lt;</button>
+                    <button class="carousel-btn next-btn">&gt;</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: Attributes Radar Chart -->
+    <section id="radar" class="radar-section container">
+        <div class="grid grid-2 align-center">
+            <div class="radar-content">
+                <span class="badge">EA Sports Index</span>
+                <h2>Midfield Player <span class="gradient-text">Attributes</span></h2>
+                <p>
+                    Analyzing the individual technical traits that define Aryan's style. Hover over the chart elements to explore his core performance metrics.
+                </p>
+                <div class="radar-legend">
+                    <div class="legend-item"><span class="legend-dot drible"></span> Dribbling: 92</div>
+                    <div class="legend-item"><span class="legend-dot vision"></span> Vision: 95</div>
+                    <div class="legend-item"><span class="legend-dot pass"></span> Passing: 90</div>
+                    <div class="legend-item"><span class="legend-dot comp"></span> Composure: 96</div>
+                    <div class="legend-item"><span class="legend-dot agil"></span> Agility: 89</div>
+                </div>
+            </div>
+            <div class="radar-visual">
+                <canvas id="attributesChart" width="400" height="400"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 5: Documentary Video Commentary -->
+    <section id="documentary" class="doc-section container">
+        <h2 class="section-title text-center">The <span class="gradient-text">Docu-Series</span></h2>
+        <p class="section-subtitle text-center">Experience the narrative journey of the Mysuru Messi.</p>
+        <div class="doc-player-card">
+            <div class="doc-video-area">
+                <!-- Premium Animated Stadium Lighting Backdrop -->
+                <div class="stadium-lights">
+                    <div class="light-beam lb-left"></div>
+                    <div class="light-beam lb-right"></div>
+                    <span class="field-ball">⚽</span>
+                </div>
+                <div class="play-overlay" id="play-doc-btn">
+                    <span class="play-triangle">▶</span>
+                </div>
+            </div>
+            <div class="doc-text-area">
+                <h3>Episode 1: The Mysore Boy with Golden Feet</h3>
+                <div class="typing-box">
+                    <p id="doc-paragraph">Click the play button to start the documentary audio transcript...</p>
+                </div>
+                <div class="doc-controls">
+                    <span class="status-indicator">STANDBY</span>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Stats & Achievements -->
     <section id="stats" class="stats-section">
