@@ -532,7 +532,7 @@ section {
 
 .carousel-track {
     position: relative;
-    height: 380px;
+    min-height: 380px; /* Use min-height so it can expand if text is long */
 }
 
 .carousel-slide {
@@ -548,6 +548,7 @@ section {
 }
 
 .carousel-slide.active {
+    position: relative; /* Switch to relative so parent expands height */
     opacity: 1;
     visibility: visible;
     transform: scale(1);
@@ -557,39 +558,40 @@ section {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 20px;
-    padding: 3rem 2.5rem;
+    padding: 2rem 1.5rem; /* Reduced padding on mobile */
     text-align: center;
     position: relative;
     backdrop-filter: blur(10px);
+    height: 100%;
 }
 
 .star-avatar {
-    font-size: 4rem;
-    margin-bottom: 1rem;
+    font-size: 3.5rem;
+    margin-bottom: 0.8rem;
     filter: drop-shadow(0 0 8px var(--primary-glow));
 }
 
 .star-card h3 {
     font-family: var(--font-heading);
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     margin-bottom: 0.2rem;
 }
 
 .star-club {
     color: var(--primary-color);
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     display: inline-block;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .star-quote {
-    font-size: 1.15rem;
+    font-size: 1.05rem;
     font-style: italic;
     color: var(--text-main);
-    line-height: 1.6;
+    line-height: 1.5;
     max-width: 620px;
     margin: 0 auto;
 }
@@ -598,7 +600,7 @@ section {
     display: flex;
     justify-content: center;
     gap: 1.5rem;
-    margin-top: 1rem;
+    margin-top: 1.5rem;
 }
 
 .carousel-btn {
@@ -696,6 +698,8 @@ section {
     height: 100%;
     pointer-events: none;
     z-index: 2;
+    top: 0;
+    left: 0;
 }
 
 .light-beam {
@@ -724,27 +728,27 @@ section {
 }
 
 .play-overlay {
-    width: 90px;
-    height: 90px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     background: var(--primary-color);
     color: var(--bg-dark);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2.2rem;
+    font-size: 2rem;
     cursor: pointer;
     transition: var(--transition-smooth);
     z-index: 10;
     box-shadow: 0 0 25px rgba(255, 215, 0, 0.3);
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
 }
 
 .play-overlay:hover {
-    transform: translate(-50%, -50%) scale(1.08);
+    transform: translate(-50%, -50%) scale(1.08) !important;
     background: var(--secondary-color);
     box-shadow: 0 0 35px rgba(0, 255, 136, 0.5);
 }
