@@ -489,7 +489,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let lastFrameTime = performance.now();
     let lastAudioTime = -1;
 
-    if (playDocBtn && statusText && videoArea && docCanvas && subtitleOverlay) {
+    if (playDocBtn && statusText && videoArea && subtitleOverlay) {
         const docCtx = docCanvas ? docCanvas.getContext("2d") : null;
 
         // Responsive Canvas Resizer
