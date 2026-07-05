@@ -284,18 +284,14 @@
                 <video id="doc-bg-video" loop muted playsinline>
                     <source src="video.mp4" type="video/mp4">
                     Your browser does not support the video tag.
-                </video>
-                <!-- Spotlights overlay -->
-                <div class="stadium-lights">
-                    <div class="light-beam lb-left"></div>
-                    <div class="light-beam lb-right"></div>
-                </div>
-                <!-- Play overlay control button -->
-                <div class="play-overlay" id="play-doc-btn">
-                    <span class="play-triangle">▶</span>
-                </div>
                 <!-- Subtitle Overlay centered at bottom of video -->
                 <div id="doc-subtitles" class="subtitle-overlay"></div>
+            </div>
+            <!-- Play control button positioned cleanly below the video box -->
+            <div style="text-align: center; padding: 1.5rem; background: var(--bg-dark); border-top: 1px solid var(--border-color);">
+                <button id="play-doc-btn" class="btn btn-primary" style="min-width: 160px;">
+                    ▶ Play Intro
+                </button>
             </div>
         </div>
     </section>

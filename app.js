@@ -1305,7 +1305,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const triggerDocumentaryFinished = () => {
             if (!isPlaying) return;
             logInfoToPanel("SYSTEM", "Documentary playback finished.");
-            playDocBtn.innerHTML = "<span class='play-triangle'>▶</span>";
+            playDocBtn.innerHTML = "▶ Play Intro";
             videoArea.classList.remove("playing");
             subtitleOverlay.classList.remove("active");
             isPlaying = false;
@@ -1332,7 +1332,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 } catch (e) {
                     logErrorToPanel("VIDEO", `Pause error: ${e.message}`);
                 }
-                playDocBtn.innerHTML = "<span class='play-triangle'>▶</span>";
+                playDocBtn.innerHTML = "▶ Play Intro";
                 videoArea.classList.remove("playing");
                 subtitleOverlay.classList.remove("active");
                 isPlaying = false;
@@ -1341,7 +1341,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Play / resume
                 isPlaying = true;
                 lastFrameTime = performance.now(); // reset delta reference
-                playDocBtn.innerHTML = "<span style='font-size:1.8rem; font-weight:bold;'>||</span>";
+                playDocBtn.innerHTML = "❚❚ Pause";
                 videoArea.classList.add("playing");
                 logInfoToPanel("SYSTEM", "Playback initiated. Starting synchronization loop.");
                 
